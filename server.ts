@@ -110,7 +110,7 @@ async function startServer() {
   // Export triggers: Creates a single perfect GitHub commit transaction dynamically!
   app.post('/api/github-export-trigger', async (req, res) => {
     try {
-      const { token, repo: rawRepo, branch = 'main', commitMessage = 'Manual export from Al-Wird Workspace' } = req.body;
+      const { token, repo: rawRepo, branch: rawBranch = 'main', commitMessage = 'Manual export from Al-Wird Workspace' } = req.body;
       
       if (!token) {
         return res.status(400).json({ success: false, error: 'GitHub Personal Access Token (PAT) is required.' });
@@ -119,15 +119,19 @@ async function startServer() {
         return res.status(400).json({ success: false, error: 'GitHub Repository is required.' });
       }
 
+      const cleanToken = token.trim();
+      const cleanRepo = rawRepo.trim();
+      const branch = rawBranch.trim();
+
       let parsed;
       try {
-        parsed = parseRepoInput(rawRepo);
+        parsed = parseRepoInput(cleanRepo);
       } catch (err: any) {
         return res.status(400).json({ success: false, error: err.message });
       }
 
       const { owner, name: repoName } = parsed;
-      const authHeader = `Bearer ${token}`;
+      const authHeader = `Bearer ${cleanToken}`;
       
       // Sync scan
       const workspaceRoot = process.cwd();
@@ -168,12 +172,69 @@ async function startServer() {
       let branchExists = false;
 
       if (!refRes.ok) {
-        // Since the branch or reference doesn't exist, the repository might be brand new and completely empty.
-        // Let's safe-initialize the repository by putting a lightweight initial README.md using the Contents API.
-        // This is highly compatible with empty repositories and creates the default branch.
+        // Since the branch or reference doesn't exist, let's see if the repository is initialized
+        // by fetching the generic repo details to identify the default branch name.
+        const repoInfoRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}`, {
+          headers: {
+            'Authorization': authHeader,
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'Al-Wird-Manual-Exporter'
+          }
+        });
+
+        if (repoInfoRes.ok) {
+          const repoData = await repoInfoRes.json() as any;
+          const defaultBranch = repoData.default_branch || 'main';
+
+          // Try and get default branch reference commit SHA
+          const defaultRefRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/ref/heads/${defaultBranch}`, {
+            headers: {
+              'Authorization': authHeader,
+              'Accept': 'application/vnd.github.v3+json',
+              'User-Agent': 'Al-Wird-Manual-Exporter'
+            }
+          });
+
+          if (defaultRefRes.ok) {
+            const defaultRefData = await defaultRefRes.json() as any;
+            const sourceCommitSha = defaultRefData.object.sha;
+
+            // Excellent: Create the requested branch pointing to this existing source commit
+            const createBranchRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/refs`, {
+              method: 'POST',
+              headers: {
+                'Authorization': authHeader,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json',
+                'User-Agent': 'Al-Wird-Manual-Exporter'
+              },
+              body: JSON.stringify({
+                ref: `refs/heads/${branch}`,
+                sha: sourceCommitSha
+              })
+            });
+
+            if (createBranchRes.ok) {
+              // Successfully created requested target branch off default branch! Re-fetch ref
+              refRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/ref/heads/${branch}`, {
+                headers: {
+                  'Authorization': authHeader,
+                  'Accept': 'application/vnd.github.v3+json',
+                  'User-Agent': 'Al-Wird-Manual-Exporter'
+                }
+              });
+            }
+          }
+        }
+      }
+
+      // If refRes is STILL not OK, it means either we failed to create it or the repo is completely empty.
+      if (!refRes.ok) {
+        // Since the branch or reference doesn't exist, the repository is brand new and completely empty.
+        // Initialize the repository by creating README.md in the target branch using the Contents API.
         const readmeContent = Buffer.from(`# Al-Wird Islamic Hub\n\nManual workspace export synchronization.`).toString('base64');
         
-        await fetch(`https://api.github.com/repos/${owner}/${repoName}/contents/README.md`, {
+        const initRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/contents/README.md`, {
           method: 'PUT',
           headers: {
             'Authorization': authHeader,
@@ -188,14 +249,16 @@ async function startServer() {
           })
         });
 
-        // Fetch reference again now that the repository has been initialized
-        refRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/ref/heads/${branch}`, {
-          headers: {
-            'Authorization': authHeader,
-            'Accept': 'application/vnd.github.v3+json',
-            'User-Agent': 'Al-Wird-Manual-Exporter'
-          }
-        });
+        if (initRes.ok) {
+          // Fetch reference again now that the repository has been initialized
+          refRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/ref/heads/${branch}`, {
+            headers: {
+              'Authorization': authHeader,
+              'Accept': 'application/vnd.github.v3+json',
+              'User-Agent': 'Al-Wird-Manual-Exporter'
+            }
+          });
+        }
       }
 
       if (refRes.ok) {
