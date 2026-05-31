@@ -49,13 +49,19 @@ export default function App() {
   // Check URL query parameters for a shared deep link
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const trackId = params.get('track');
-    if (trackId) {
-      const foundTrack = ISLAMIC_AUDIO_DATA.find(item => item.id === trackId);
-      if (foundTrack) {
-        setActiveTrack(foundTrack);
-        setIsPlaying(true);
-        setActiveTab('media');
+    const queryTab = params.get('tab');
+    
+    if (queryTab === 'tasbih' || queryTab === 'guide' || queryTab === 'about' || queryTab === 'github') {
+      setActiveTab(queryTab as 'media' | 'tasbih' | 'guide' | 'about' | 'github');
+    } else {
+      const trackId = params.get('track');
+      if (trackId) {
+        const foundTrack = ISLAMIC_AUDIO_DATA.find(item => item.id === trackId);
+        if (foundTrack) {
+          setActiveTrack(foundTrack);
+          setIsPlaying(true);
+          setActiveTab('media');
+        }
       }
     }
   }, []);

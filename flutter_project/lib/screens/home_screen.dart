@@ -5,6 +5,7 @@ import 'web_portal_screen.dart';
 import 'about_screen.dart';
 import 'settings_screen.dart';
 import 'downloads_screen.dart';
+import 'tasbih_screen.dart';
 
 class NativeHomeScreen extends StatefulWidget {
   const NativeHomeScreen({super.key});
@@ -407,15 +408,7 @@ class _NativeHomeScreenState extends State<NativeHomeScreen> {
                   subtitle: 'Defensive Azkar Shield',
                   icon: Icons.refresh_rounded,
                   color: Colors.teal,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Launch the Portal for a fully interactive local Tasbih board counter!'),
-                        behavior: SnackBarBehavior.floating,
-                        backgroundColor: Color(0xFF4A6741),
-                      ),
-                    );
-                  },
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const NativeTasbihScreen())),
                 ),
                 // Contact / About info
                 HomeCard(

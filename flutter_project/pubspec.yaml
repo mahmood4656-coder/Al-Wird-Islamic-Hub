@@ -29,3 +29,5 @@ flutter:
   assets:
     - assets/icon.png
     - assets/offline_placeholder.html
+    - assets/dist/
+    - assets/dist/assets/
