@@ -1,5 +1,6 @@
 name: al_wird_clean
 description: A fresh clean Flutter wrapper for Al-Wird.
+# Verified, aligned with latest Android dependencies & modern Built-In Kotlin - 2026-05-31
 publish_to: 'none'
 
 version: 1.0.0+1
