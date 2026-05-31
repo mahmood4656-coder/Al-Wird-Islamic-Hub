@@ -1,0 +1,45 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+migrate.log
+
+# IntelliJ Related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Visual Studio Code Related
+.vscode/
+*.code-workspace
+.history/
+
+# Flutter Related
+# https://github.com/github/gitignore/blob/main/Dart.gitignore
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+
+# Android Related
+/android/app/local.properties
+/android/app/release-keystore.jks
+/android/.gradle/
+/android/gradle-app.setting
+/android/local.properties
+/android/key.properties
+*.apk
+*.aab
+*.png
+!/assets/icon.png
+!/flutter_project/assets/icon.png

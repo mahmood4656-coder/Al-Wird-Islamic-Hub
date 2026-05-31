@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Islamic Wird Dua Quran Player",
+  "description": "A beautiful audio player and Tasbih counter for Islamic Wird (ورد), Dua (دعا), and Quran translation listening, including an offline-ready design suitable for Android packaging.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
