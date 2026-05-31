@@ -142,11 +142,14 @@ async function startServer() {
       }
 
       // Check repo access
-      const repoCheckRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}`, {
+      const repoCheckRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}?t=${Date.now()}`, {
         headers: {
           'Authorization': authHeader,
           'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': 'Al-Wird-Manual-Exporter'
+          'User-Agent': 'Al-Wird-Manual-Exporter',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
       });
 
@@ -158,12 +161,15 @@ async function startServer() {
         });
       }
 
-      // Checking if the branch ref exists
-      let refRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/ref/heads/${branch}`, {
+      // Checking if the branch ref exists (Using canonical plural refs endpoints with aggressive cache-busting)
+      let refRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/refs/heads/${branch}?t=${Date.now()}`, {
         headers: {
           'Authorization': authHeader,
           'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': 'Al-Wird-Manual-Exporter'
+          'User-Agent': 'Al-Wird-Manual-Exporter',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
       });
 
@@ -174,11 +180,14 @@ async function startServer() {
       if (!refRes.ok) {
         // Since the branch or reference doesn't exist, let's see if the repository is initialized
         // by fetching the generic repo details to identify the default branch name.
-        const repoInfoRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}`, {
+        const repoInfoRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}?t=${Date.now()}`, {
           headers: {
             'Authorization': authHeader,
             'Accept': 'application/vnd.github.v3+json',
-            'User-Agent': 'Al-Wird-Manual-Exporter'
+            'User-Agent': 'Al-Wird-Manual-Exporter',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
           }
         });
 
@@ -187,11 +196,14 @@ async function startServer() {
           const defaultBranch = repoData.default_branch || 'main';
 
           // Try and get default branch reference commit SHA
-          const defaultRefRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/ref/heads/${defaultBranch}`, {
+          const defaultRefRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/refs/heads/${defaultBranch}?t=${Date.now()}`, {
             headers: {
               'Authorization': authHeader,
               'Accept': 'application/vnd.github.v3+json',
-              'User-Agent': 'Al-Wird-Manual-Exporter'
+              'User-Agent': 'Al-Wird-Manual-Exporter',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
             }
           });
 
@@ -216,11 +228,14 @@ async function startServer() {
 
             if (createBranchRes.ok) {
               // Successfully created requested target branch off default branch! Re-fetch ref
-              refRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/ref/heads/${branch}`, {
+              refRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/refs/heads/${branch}?t=${Date.now()}`, {
                 headers: {
                   'Authorization': authHeader,
                   'Accept': 'application/vnd.github.v3+json',
-                  'User-Agent': 'Al-Wird-Manual-Exporter'
+                  'User-Agent': 'Al-Wird-Manual-Exporter',
+                  'Cache-Control': 'no-cache, no-store, must-revalidate',
+                  'Pragma': 'no-cache',
+                  'Expires': '0'
                 }
               });
             }
@@ -251,11 +266,14 @@ async function startServer() {
 
         if (initRes.ok) {
           // Fetch reference again now that the repository has been initialized
-          refRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/ref/heads/${branch}`, {
+          refRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/refs/heads/${branch}?t=${Date.now()}`, {
             headers: {
               'Authorization': authHeader,
               'Accept': 'application/vnd.github.v3+json',
-              'User-Agent': 'Al-Wird-Manual-Exporter'
+              'User-Agent': 'Al-Wird-Manual-Exporter',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
             }
           });
         }
@@ -266,11 +284,14 @@ async function startServer() {
         parentCommitSha = refData.object.sha;
         branchExists = true;
 
-        const commitRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/commits/${parentCommitSha}`, {
+        const commitRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/commits/${parentCommitSha}?t=${Date.now()}`, {
           headers: {
             'Authorization': authHeader,
             'Accept': 'application/vnd.github.v3+json',
-            'User-Agent': 'Al-Wird-Manual-Exporter'
+            'User-Agent': 'Al-Wird-Manual-Exporter',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
           }
         });
         if (commitRes.ok) {
